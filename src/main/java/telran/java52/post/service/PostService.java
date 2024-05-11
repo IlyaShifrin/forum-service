@@ -1,14 +1,13 @@
-package telran.java52.forum.service;
+package telran.java52.post.service;
 
 import java.util.List;
-import java.util.Set;
 
-import telran.java52.forum.dto.DatePeriodDto;
-import telran.java52.forum.dto.NewCommentDto;
-import telran.java52.forum.dto.NewPostDto;
-import telran.java52.forum.dto.PostDto;
+import telran.java52.post.dto.DatePeriodDto;
+import telran.java52.post.dto.NewCommentDto;
+import telran.java52.post.dto.NewPostDto;
+import telran.java52.post.dto.PostDto;
 
-public interface ForumService {
+public interface PostService {
 	PostDto addNewPost(String author, NewPostDto newPostDto);
 	
 	PostDto findPostById(String id);
