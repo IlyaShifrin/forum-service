@@ -5,7 +5,7 @@ import java.time.LocalDate;
 import lombok.Getter;
 
 @Getter
-public class PeriodDto {
+public class DatePeriodDto {
     LocalDate dateFrom;
     LocalDate dateTo;
 }

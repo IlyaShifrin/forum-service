@@ -1,12 +1,12 @@
 package telran.java52.forum.dto;
 
-import java.util.List;
+import java.util.Set;
 
 import lombok.Getter;
 
 @Getter
-public class PostAddDto {
+public class NewPostDto {
 		String title;
 		String content;
-		List<String> tags;
+		Set<String> tags;
 }
