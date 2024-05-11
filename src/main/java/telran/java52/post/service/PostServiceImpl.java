@@ -84,20 +84,23 @@ public class PostServiceImpl implements PostService {
 
 	@Override
 	public Iterable<PostDto> findPostsByAuthor(String author) {
-		// TODO Auto-generated method stub
-		return null;
+		return postRepository.findByAuthorIgnoreCase(author)
+				.map(s -> modelMapper.map(s, PostDto.class))
+				.toList();
 	}
 
 	@Override
 	public Iterable<PostDto> findPostsByTags(List<String> tags) {
-		// TODO Auto-generated method stub
-		return null;
+		return postRepository.findByTagsInIgnoreCase(tags)
+				.map(s -> modelMapper.map(s, PostDto.class))
+				.toList();
 	}
 
 	@Override
 	public Iterable<PostDto> findPostsByPeriod(DatePeriodDto period) {
-		// TODO Auto-generated method stub
-		return null;
+		return postRepository.findByDateCreatedBetween(period.getDateFrom(), period.getDateTo())
+				.map(s -> modelMapper.map(s, PostDto.class))
+				.toList();
 	}
 
 }
