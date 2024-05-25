@@ -13,17 +13,10 @@ import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserAccountRepository;
-import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
 
 @Component
-@RequiredArgsConstructor
-@Order(20)
-public class AdminManagingRolesFilter implements Filter {
-
-	final UserAccountRepository userAccountRepository;
+@Order(30)
+public class UpdateByOwnerFilter implements Filter {
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -34,20 +27,20 @@ public class AdminManagingRolesFilter implements Filter {
 
 		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
 			String principal = request.getUserPrincipal().getName();
-			UserAccount userAccount = userAccountRepository.findById(principal).get();
-
-			if (!userAccount.getRoles().contains(Role.ADMINISTRATOR)) {
-				response.sendError(403, "You are not allowed to access this resource");
+			String[] parts = request.getServletPath().split("/");
+			String owner = parts[parts.length - 1];
+			if (!principal.equalsIgnoreCase(owner)) {
+				response.sendError(403, "Not authorized");
 				return;
 			}
 		}
-
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndpoint(String method, String path) {
-		return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
-				&& path.matches("/account/user/\\w+/role/[a-zA-Z]+");
+		return (HttpMethod.PUT.matches(method) && path.matches("/account/user/\\w+"))
+				|| (HttpMethod.POST.matches(method) && path.matches("/forum/post/\\w+"))
+				|| (HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+/comment/\\w+"));
 	}
 
 }

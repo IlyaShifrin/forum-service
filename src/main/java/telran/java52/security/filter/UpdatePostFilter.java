@@ -14,16 +14,15 @@ import jakarta.servlet.ServletResponse;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import telran.java52.accounting.dao.UserAccountRepository;
-import telran.java52.accounting.model.Role;
-import telran.java52.accounting.model.UserAccount;
+import telran.java52.post.dao.PostRepository;
+import telran.java52.post.model.Post;
 
 @Component
 @RequiredArgsConstructor
-@Order(20)
-public class AdminManagingRolesFilter implements Filter {
+@Order(50)
+public class UpdatePostFilter implements Filter {
 
-	final UserAccountRepository userAccountRepository;
+	final PostRepository postRepository;
 
 	@Override
 	public void doFilter(ServletRequest req, ServletResponse resp, FilterChain chain)
@@ -34,20 +33,24 @@ public class AdminManagingRolesFilter implements Filter {
 
 		if (checkEndpoint(request.getMethod(), request.getServletPath())) {
 			String principal = request.getUserPrincipal().getName();
-			UserAccount userAccount = userAccountRepository.findById(principal).get();
-
-			if (!userAccount.getRoles().contains(Role.ADMINISTRATOR)) {
-				response.sendError(403, "You are not allowed to access this resource");
+			String[] parts = request.getServletPath().split("/");
+			String postId = parts[parts.length - 1];
+			Post post = postRepository.findById(postId).orElse(null);
+			if (post == null) {
+				response.sendError(404, "Not found");
+				return;
+			}
+			
+			if (!principal.equals(post.getAuthor())) {
+				response.sendError(403, "You don't have permission to access this resource");
 				return;
 			}
 		}
-
 		chain.doFilter(request, response);
 	}
 
 	private boolean checkEndpoint(String method, String path) {
-		return (HttpMethod.PUT.matches(method) || HttpMethod.DELETE.matches(method))
-				&& path.matches("/account/user/\\w+/role/[a-zA-Z]+");
+		return HttpMethod.PUT.matches(method) && path.matches("/forum/post/\\w+");
 	}
 
 }
