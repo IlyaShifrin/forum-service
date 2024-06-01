@@ -19,11 +19,13 @@ import telran.java52.accounting.model.Role;
 public class SecurityConfiguration {
 	
 	final WebSecurity webSecurity;
+	final CustomWebSecurity customWebSecurity;
 	
 	@Bean
 	SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
 		http.httpBasic(Customizer.withDefaults());
 		http.csrf(csrf -> csrf.disable());
+//		http.sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.ALWAYS));
 		http.authorizeHttpRequests(authorize -> authorize
 				.requestMatchers("/account/register", "/forum/posts/**")
 					.permitAll()
@@ -39,13 +41,24 @@ public class SecurityConfiguration {
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}/comment/{author}")
 					.access(new WebExpressionAuthorizationManager("#author == authentication.name"))
 				
+				.requestMatchers(HttpMethod.PUT, "/forum/post/{id}")
+					.access((authentication, context) -> new AuthorizationDecision(
+							customWebSecurity.checkPostAuthor(context.getVariables().get("id"), authentication.get().getName())))
+				.requestMatchers(HttpMethod.DELETE, "/forum/post/{id}")
+					.access((authentication, context) -> {
+						boolean checkAuthor = customWebSecurity.checkPostAuthor(context.getVariables().get("id"), authentication.get().getName());
+						boolean checkModerator = context.getRequest().isUserInRole(Role.MODERATOR.name());
+						return new AuthorizationDecision(checkAuthor || checkModerator);
+					})
+					
+					/*								
 				.requestMatchers(HttpMethod.DELETE, "/forum/post/{postId}")
 					.access((authentication, context) -> new AuthorizationDecision(
 							webSecurity.checkDeletePost(authentication.get(), context.getVariables().get("postId"))))
 				.requestMatchers(HttpMethod.PUT, "/forum/post/{postId}")
 					.access((authentication, context) -> new AuthorizationDecision(
 							webSecurity.checkUpdatePost(authentication.get(), context.getVariables().get("postId"))))
-					
+		*/
 				.anyRequest().authenticated()
 				
 		);
